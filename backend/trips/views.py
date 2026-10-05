@@ -1,9 +1,10 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Expense, Group
+from .models import Expense, Group, Settlement
 from .serializers import ExpenseSerializer, GroupSerializer, MemberSerializer, SettlementSerializer
 from .services.balances import (
     ExpenseInput,
@@ -31,6 +32,18 @@ class GroupDetailView(APIView):
     def get(self, request, share_code):
         group = _get_group(share_code)
         return Response(GroupSerializer(group).data)
+
+    def delete(self, request, share_code):
+        group = _get_group(share_code)
+        with transaction.atomic():
+            # Expense/Settlement PROTECT their Member foreign keys, so they
+            # have to go before Member does — otherwise Group.delete()'s
+            # cascade to Member would hit a ProtectedError, even though
+            # every row here is about to be deleted together anyway.
+            Expense.objects.filter(group=group).delete()
+            Settlement.objects.filter(group=group).delete()
+            group.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class MemberListCreateView(APIView):

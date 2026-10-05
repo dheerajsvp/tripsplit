@@ -25,3 +25,12 @@ export function addRecentTrip(trip: RecentTrip): void {
     // localStorage can be unavailable (private browsing, quota); this is a convenience, not critical.
   }
 }
+
+export function removeRecentTrip(shareCode: string): void {
+  try {
+    const updated = getRecentTrips().filter((existing) => existing.shareCode !== shareCode)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  } catch {
+    // localStorage can be unavailable (private browsing, quota); this is a convenience, not critical.
+  }
+}

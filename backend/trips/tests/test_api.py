@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from trips.models import Expense, Group, Member
+from trips.models import Expense, ExpenseShare, Group, Member, Settlement
 
 
 class CreateTripApiTests(APITestCase):
@@ -259,4 +259,34 @@ class DeleteExpenseApiTests(TripApiTestCase):
 
     def test_unknown_share_code_returns_404(self):
         resp = self.client.get(reverse("group-detail", args=["doesnotexist"]))
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class DeleteTripApiTests(TripApiTestCase):
+    def test_delete_trip_cascades_members_expenses_and_settlements(self):
+        self.add_expense()
+        self.client.post(
+            reverse("settlement-list-create", args=[self.share_code]),
+            {
+                "from_member": self.members["Arjun"],
+                "to_member": self.members["Dheeraj"],
+                "amount": "100.00",
+            },
+            format="json",
+        )
+
+        resp = self.client.delete(reverse("group-detail", args=[self.share_code]))
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.assertEqual(Group.objects.count(), 0)
+        self.assertEqual(Member.objects.count(), 0)
+        self.assertEqual(Expense.objects.count(), 0)
+        self.assertEqual(ExpenseShare.objects.count(), 0)
+        self.assertEqual(Settlement.objects.count(), 0)
+
+        resp = self.client.get(reverse("group-detail", args=[self.share_code]))
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_trip_unknown_share_code_returns_404(self):
+        resp = self.client.delete(reverse("group-detail", args=["doesnotexist"]))
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

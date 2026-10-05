@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { ApiError, deleteExpense, getGroup, listExpenses } from '../api/client'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ApiError, deleteExpense, deleteGroup, getGroup, listExpenses } from '../api/client'
 import { formatPaise } from '../lib/money'
+import { removeRecentTrip } from '../lib/recentTrips'
 import type { Expense, Group } from '../types'
 
 export default function TripDashboardPage() {
   const { code } = useParams<{ code: string }>()
+  const navigate = useNavigate()
   const [group, setGroup] = useState<Group | null>(null)
   const [expenses, setExpenses] = useState<Expense[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +39,24 @@ export default function TripDashboardPage() {
       setExpenses((prev) => prev?.filter((expense) => expense.id !== expenseId) ?? null)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not delete this expense.')
+    }
+  }
+
+  async function handleDeleteTrip() {
+    if (!code || !group) return
+    if (
+      !window.confirm(
+        `Delete "${group.name}" permanently? This removes all its expenses and settlements too — this can't be undone.`,
+      )
+    ) {
+      return
+    }
+    try {
+      await deleteGroup(code)
+      removeRecentTrip(code)
+      navigate('/')
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not delete this trip.')
     }
   }
 
@@ -154,6 +174,16 @@ export default function TripDashboardPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-10 border-t border-gray-200 pt-4">
+        <button
+          type="button"
+          onClick={handleDeleteTrip}
+          className="w-full rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600"
+        >
+          Delete trip
+        </button>
       </section>
     </main>
   )

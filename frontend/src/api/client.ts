@@ -60,6 +60,10 @@ export function getGroup(shareCode: string): Promise<Group> {
   return request(`/groups/${shareCode}/`)
 }
 
+export function deleteGroup(shareCode: string): Promise<void> {
+  return request(`/groups/${shareCode}/`, { method: 'DELETE' })
+}
+
 export function addMember(shareCode: string, payload: AddMemberRequest): Promise<Member> {
   return request(`/groups/${shareCode}/members/`, {
     method: 'POST',
