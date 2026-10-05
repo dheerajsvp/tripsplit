@@ -4,8 +4,6 @@ A group trip expense splitter for India — add shared expenses, and TripSplit w
 
 **[Live demo →](https://tripsplit-nine-topaz.vercel.app/)**
 
-<!-- TODO: add a screenshot or short GIF of the Settle Up page here -->
-
 ## Features
 
 - Create a trip with members (name + UPI ID) and get a shareable link — no login required.
