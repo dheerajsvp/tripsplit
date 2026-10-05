@@ -107,7 +107,6 @@ export default function AddExpensePage() {
             required
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Houseboat"
             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
           />
         </div>
@@ -123,7 +122,6 @@ export default function AddExpensePage() {
             required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="1500.00"
             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
           />
         </div>
