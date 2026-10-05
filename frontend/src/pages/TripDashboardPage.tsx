@@ -64,7 +64,10 @@ export default function TripDashboardPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-4 py-8">
-      <h1 className="text-2xl font-semibold text-gray-900">{group.name}</h1>
+      <Link to="/" className="text-sm text-gray-500">
+        ← All trips
+      </Link>
+      <h1 className="mt-1 text-2xl font-semibold text-gray-900">{group.name}</h1>
 
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <button
