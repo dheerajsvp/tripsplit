@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { addExpense, ApiError, getGroup } from '../api/client'
+import Avatar from '../components/Avatar'
+import BackLink from '../components/BackLink'
+import Button from '../components/Button'
+import Card from '../components/Card'
 import { formatPaise, parseRupeesToPaise } from '../lib/money'
 import { splitEqually } from '../lib/split'
 import type { Group } from '../types'
+
+const INPUT_CLASSES =
+  'mt-1.5 block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-base text-gray-900 transition-colors focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100'
 
 export default function AddExpensePage() {
   const { code } = useParams<{ code: string }>()
@@ -91,14 +98,12 @@ export default function AddExpensePage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-md px-4 py-8">
-      <Link to={`/t/${code}`} className="text-sm text-gray-500">
-        ← Back to {group.name}
-      </Link>
-      <h1 className="mt-2 text-2xl font-semibold text-gray-900">Add expense</h1>
+      <BackLink to={`/t/${code}`}>Back to {group.name}</BackLink>
+      <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-gray-900">Add expense</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-semibold text-gray-700">
             Description
           </label>
           <input
@@ -107,12 +112,12 @@ export default function AddExpensePage() {
             required
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
+            className={INPUT_CLASSES}
           />
         </div>
 
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="amount" className="block text-sm font-semibold text-gray-700">
             Amount (₹)
           </label>
           <input
@@ -122,12 +127,12 @@ export default function AddExpensePage() {
             required
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
+            className={INPUT_CLASSES}
           />
         </div>
 
         <div>
-          <label htmlFor="paid-by" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="paid-by" className="block text-sm font-semibold text-gray-700">
             Paid by
           </label>
           <select
@@ -135,7 +140,7 @@ export default function AddExpensePage() {
             required
             value={paidBy}
             onChange={(e) => setPaidBy(Number(e.target.value))}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-gray-500 focus:outline-none"
+            className={INPUT_CLASSES}
           >
             {group.members.map((member) => (
               <option key={member.id} value={member.id}>
@@ -146,27 +151,29 @@ export default function AddExpensePage() {
         </div>
 
         <div>
-          <span className="block text-sm font-medium text-gray-700">Split between</span>
+          <span className="block text-sm font-semibold text-gray-700">Split between</span>
           <div className="mt-2 space-y-2">
             {group.members.map((member) => {
               const share = preview?.[member.id]
               return (
-                <label
-                  key={member.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2"
-                >
-                  <span className="flex min-w-0 items-center gap-2 text-sm text-gray-900">
+                <label key={member.id}>
+                  <Card className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       checked={splitBetween.has(member.id)}
                       onChange={() => toggleMember(member.id)}
-                      className="h-4 w-4 shrink-0"
+                      className="h-4 w-4 shrink-0 accent-emerald-600"
                     />
-                    <span className="truncate">{member.name}</span>
-                  </span>
-                  {share !== undefined && (
-                    <span className="shrink-0 text-sm text-gray-500">{formatPaise(share)}</span>
-                  )}
+                    <Avatar name={member.name} size="sm" />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+                      {member.name}
+                    </span>
+                    {share !== undefined && (
+                      <span className="shrink-0 text-sm font-semibold text-emerald-600">
+                        {formatPaise(share)}
+                      </span>
+                    )}
+                  </Card>
                 </label>
               )
             })}
@@ -174,18 +181,14 @@ export default function AddExpensePage() {
         </div>
 
         {submitError && (
-          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p role="alert" className="rounded-xl bg-red-50 px-3 py-2.5 text-sm text-red-700">
             {submitError}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting || splitBetween.size === 0}
-          className="w-full rounded-lg bg-blue-600 px-4 py-3 text-base font-medium text-white disabled:opacity-50"
-        >
+        <Button type="submit" disabled={isSubmitting || splitBetween.size === 0} className="w-full">
           {isSubmitting ? 'Adding expense…' : 'Add expense'}
-        </button>
+        </Button>
       </form>
     </main>
   )
