@@ -1,7 +1,7 @@
-import { MapPinned, Plus, X } from 'lucide-react'
+import { MapPinned, Plus, Sparkles, X } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ApiError, createGroup } from '../api/client'
+import { ApiError, createDemoGroup, createGroup } from '../api/client'
 import Avatar from '../components/Avatar'
 import Button from '../components/Button'
 import Card from '../components/Card'
@@ -25,6 +25,7 @@ export default function CreateTripPage() {
   const [tripName, setTripName] = useState('')
   const [members, setMembers] = useState<MemberRow[]>([emptyMember(), emptyMember()])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isStartingDemo, setIsStartingDemo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const recentTrips = getRecentTrips()
 
@@ -58,10 +59,41 @@ export default function CreateTripPage() {
     }
   }
 
+  async function handleStartDemo() {
+    setError(null)
+    setIsStartingDemo(true)
+    try {
+      const group = await createDemoGroup()
+      addRecentTrip({ shareCode: group.share_code, name: group.name })
+      navigate(`/t/${group.share_code}`)
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'Could not start the demo. Please try again.',
+      )
+      setIsStartingDemo(false)
+    }
+  }
+
   return (
     <main className="mx-auto min-h-screen max-w-md px-4 py-10">
       <Logo />
       <p className="mt-2 text-sm text-gray-500">Split group expenses and settle up with UPI.</p>
+
+      <Card className="mt-6 border-emerald-100 bg-emerald-50/60">
+        <p className="text-sm font-semibold text-gray-900">Just looking around?</p>
+        <p className="mt-1 text-sm text-gray-600">
+          Open a ready-made trip with sample expenses. No sign-up, no real UPI IDs needed.
+        </p>
+        <Button
+          type="button"
+          onClick={handleStartDemo}
+          disabled={isStartingDemo || isSubmitting}
+          className="mt-3 w-full"
+        >
+          <Sparkles className="h-4 w-4" />
+          {isStartingDemo ? 'Setting up demo…' : 'Try the demo'}
+        </Button>
+      </Card>
 
       {recentTrips.length > 0 && (
         <section className="mt-8">
@@ -157,7 +189,7 @@ export default function CreateTripPage() {
           </p>
         )}
 
-        <Button type="submit" disabled={isSubmitting} className="w-full">
+        <Button type="submit" disabled={isSubmitting || isStartingDemo} className="w-full">
           {isSubmitting ? 'Creating trip…' : 'Create trip'}
         </Button>
       </form>

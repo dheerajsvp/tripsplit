@@ -56,6 +56,10 @@ export function createGroup(payload: CreateGroupRequest): Promise<Group> {
   return request('/groups/', { method: 'POST', body: JSON.stringify(payload) })
 }
 
+export function createDemoGroup(): Promise<Group> {
+  return request('/groups/demo/', { method: 'POST' })
+}
+
 export function getGroup(shareCode: string): Promise<Group> {
   return request(`/groups/${shareCode}/`)
 }

@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("groups/", views.GroupListCreateView.as_view(), name="group-list-create"),
+    path("groups/demo/", views.DemoGroupView.as_view(), name="group-demo"),
     path("groups/<str:share_code>/", views.GroupDetailView.as_view(), name="group-detail"),
     path(
         "groups/<str:share_code>/members/",

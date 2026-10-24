@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .demo import create_demo_group
 from .models import Expense, Group, Settlement
 from .serializers import ExpenseSerializer, GroupSerializer, MemberSerializer, SettlementSerializer
 from .services.balances import (
@@ -25,6 +26,12 @@ class GroupListCreateView(APIView):
         serializer = GroupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         group = serializer.save()
+        return Response(GroupSerializer(group).data, status=status.HTTP_201_CREATED)
+
+
+class DemoGroupView(APIView):
+    def post(self, request):
+        group = create_demo_group()
         return Response(GroupSerializer(group).data, status=status.HTTP_201_CREATED)
 
 

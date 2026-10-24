@@ -290,3 +290,27 @@ class DeleteTripApiTests(TripApiTestCase):
     def test_delete_trip_unknown_share_code_returns_404(self):
         resp = self.client.delete(reverse("group-detail", args=["doesnotexist"]))
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class DemoTripApiTests(APITestCase):
+    def test_demo_creates_populated_trip(self):
+        resp = self.client.post(reverse("group-demo"))
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(resp.data["members"]), 4)
+        group = Group.objects.get(share_code=resp.data["share_code"])
+        self.assertGreater(group.expenses.count(), 0)
+        self.assertGreater(group.settlements.count(), 0)
+
+    def test_demo_balances_sum_to_zero(self):
+        resp = self.client.post(reverse("group-demo"))
+        balances = self.client.get(
+            reverse("group-balances", args=[resp.data["share_code"]])
+        )
+        self.assertEqual(balances.status_code, status.HTTP_200_OK)
+        self.assertEqual(sum(b["balance_paise"] for b in balances.data["balances"]), 0)
+
+    def test_each_demo_click_gets_its_own_trip(self):
+        first = self.client.post(reverse("group-demo"))
+        second = self.client.post(reverse("group-demo"))
+        self.assertNotEqual(first.data["share_code"], second.data["share_code"])
+        self.assertEqual(Group.objects.count(), 2)
