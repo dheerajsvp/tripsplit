@@ -314,3 +314,25 @@ class DemoTripApiTests(APITestCase):
         second = self.client.post(reverse("group-demo"))
         self.assertNotEqual(first.data["share_code"], second.data["share_code"])
         self.assertEqual(Group.objects.count(), 2)
+
+
+class CleanupDemoGroupsTests(APITestCase):
+    def test_deletes_only_stale_demo_groups(self):
+        from datetime import timedelta
+
+        from django.core.management import call_command
+        from django.utils import timezone
+
+        from trips.demo import create_demo_group
+
+        old_demo = create_demo_group()
+        fresh_demo = create_demo_group()
+        old_real = Group.objects.create(name="Real Trip")
+        old = timezone.now() - timedelta(days=2)
+        Group.objects.filter(pk__in=[old_demo.pk, old_real.pk]).update(created_at=old)
+
+        call_command("cleanup_demo_groups")
+
+        self.assertFalse(Group.objects.filter(pk=old_demo.pk).exists())
+        self.assertTrue(Group.objects.filter(pk=fresh_demo.pk).exists())
+        self.assertTrue(Group.objects.filter(pk=old_real.pk).exists())

@@ -33,7 +33,7 @@ DEMO_SETTLEMENTS = [
 def create_demo_group() -> Group:
     """Create a fresh, fully populated demo trip with its own share code."""
     with transaction.atomic():
-        group = Group.objects.create(name=DEMO_TRIP_NAME)
+        group = Group.objects.create(name=DEMO_TRIP_NAME, is_demo=True)
         members = {
             name: Member.objects.create(group=group, name=name, upi_id=upi_id)
             for name, upi_id in DEMO_MEMBERS

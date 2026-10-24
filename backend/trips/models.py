@@ -1,7 +1,7 @@
 import secrets
 import string
 
-from django.db import models
+from django.db import models, transaction
 
 SHARE_CODE_ALPHABET = string.ascii_letters + string.digits + "-_"
 SHARE_CODE_LENGTH = 8
@@ -20,9 +20,20 @@ class Group(models.Model):
         editable=False,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    is_demo = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+
+    def delete_with_history(self):
+        with transaction.atomic():
+            # Expense/Settlement PROTECT their Member foreign keys, so they
+            # have to go before Member does — otherwise Group.delete()'s
+            # cascade to Member would hit a ProtectedError, even though
+            # every row here is about to be deleted together anyway.
+            self.expenses.all().delete()
+            self.settlements.all().delete()
+            self.delete()
 
 
 class Member(models.Model):
